@@ -64,8 +64,8 @@ def _render_shadow(
 class StartScreen:
 
     _BUTTON_W   = 260
-    _BUTTON_H   = 52
-    _BUTTON_GAP = 18
+    _BUTTON_H   = 48
+    _BUTTON_GAP = 14
 
     def __init__(self, width: int, height: int) -> None:
         self._w = width
@@ -79,11 +79,12 @@ class StartScreen:
         labels_actions = [
             ("Start Game",   "start"),
             ("Instructions", "instructions"),
+            ("Statistics",   "statistics"),
             ("Settings",     "settings"),
             ("Exit Game",    "exit"),
         ]
 
-        start_y = height // 2 + 40
+        start_y = height // 2 + 10
         self._buttons: list[tuple[pygame.Rect, str]] = []
         for i, (label, action) in enumerate(labels_actions):
             y = start_y + i * (self._BUTTON_H + self._BUTTON_GAP)
@@ -115,7 +116,7 @@ class StartScreen:
         surface.blit(sub_surf, sub_surf.get_rect(center=(self._w // 2, self._h // 2 - 20)))
 
         mouse_pos = pygame.mouse.get_pos()
-        labels = ["Start Game", "Instructions", "Settings", "Exit Game"]
+        labels = ["Start Game", "Instructions", "Statistics", "Settings", "Exit Game"]
         for (rect, _), label in zip(self._buttons, labels):
             _draw_button(surface, rect, label, self._btn_font, hovered=rect.collidepoint(mouse_pos))
 
@@ -137,10 +138,11 @@ class PauseScreen:
         labels_actions = [
             ("Resume",       "resume"),
             ("Restart",      "restart"),
+            ("Settings",     "settings"),
             ("Quit to Menu", "menu"),
         ]
 
-        start_y = height // 2 + 20
+        start_y = height // 2 
         self._buttons: list[tuple[pygame.Rect, str]] = []
         for i, (label, action) in enumerate(labels_actions):
             y = start_y + i * (self._BUTTON_H + self._BUTTON_GAP)
@@ -169,7 +171,7 @@ class PauseScreen:
             color=WHITE,
         )
         mouse_pos = pygame.mouse.get_pos()
-        labels = ["Resume", "Restart", "Quit to Menu"]
+        labels = ["Resume", "Restart", "Settings", "Quit to Menu"]
         for (rect, _), label in zip(self._buttons, labels):
             _draw_button(surface, rect, label, self._btn_font, hovered=rect.collidepoint(mouse_pos))
 
@@ -228,15 +230,16 @@ class ResultsScreen:
 
         stats = [
             ("Score",              f"{self._sm.score}",                     YELLOW),
+            ("Max Combo",          f"{self._sm.max_combo}x",                (255, 150, 0)),
             ("Hits",               f"{self._sm.hits}",                      GREEN),
             ("Misses",             f"{self._sm.misses}",                    RED),
             ("Accuracy",           f"{self._sm.accuracy:.1f}%",             WHITE),
-            ("Avg Reaction Time",  f"{self._sm.avg_reaction_time:.0f} ms",  WHITE),
-            ("Best Reaction Time", f"{self._sm.best_reaction_time:.0f} ms", YELLOW),
+            ("Avg Reaction",       f"{self._sm.avg_reaction_time:.0f} ms",  WHITE),
+            ("Best Reaction",      f"{self._sm.best_reaction_time:.0f} ms", YELLOW),
         ]
 
-        row_h   = 44
-        start_y = 130
+        row_h   = 38
+        start_y = 120
 
         for i, (label, value, color) in enumerate(stats):
             y = start_y + i * row_h
@@ -270,7 +273,7 @@ class InstructionsScreen:
 
         
         self._instructions = [
-            ("target", "Shoot Targets:", " Click on them before they disappear."),
+            ("target", "Shoot Targets:", " Left click on them before they disappear."),
             ("time",   "Be Quick:",      " Targets shrink and expire faster over time."),
             ("score",  "Combo Bonus:",   " Earn extra points for fast reactions."),
             ("key",    "Pause Game:",    " Press ESC at any time to take a break."),
@@ -294,7 +297,7 @@ class InstructionsScreen:
                        (self._w // 2, 70), color=TITLE_COLOR)
 
         
-        panel_w, panel_h = 680, 400
+        panel_w, panel_h = 750, 350
         panel_rect = pygame.Rect(0, 0, panel_w, panel_h)
         panel_rect.center = (self._w // 2, self._h // 2)
 
@@ -396,23 +399,22 @@ class SettingsScreen:
         # 5. Crosshair Size
         self._cross_down = pygame.Rect(btn_left_x, start_y + gap_y*4, 40, 40)
         self._cross_up   = pygame.Rect(btn_right_x, start_y + gap_y*4, 40, 40)
-        # 6. Mouse Speed (Mới thêm)
+        # 6. Mouse Speed 
         self._sens_down  = pygame.Rect(btn_left_x, start_y + gap_y*5, 40, 40)
         self._sens_up    = pygame.Rect(btn_right_x, start_y + gap_y*5, 40, 40)
 
         # Trạng thái của các settings
         self.diff_opts  = ["Easy", "Normal", "Hard"]
-        self.diff_idx   = 1 
+        self.diff_idx   = 0 
 
         self.size_opts  = ["Small", "Medium", "Large"]
-        self.size_idx   = 1
+        self.size_idx   = 2
 
         self.cross_opts = ["Small", "Medium", "Large"]
-        self.cross_idx  = 1
+        self.cross_idx  = 2
         
-        # Mốc tốc độ chuột: 0.5x tới 2.0x
         self.sens_opts  = ["0.5x", "0.8x", "1.0x", "1.2x", "1.5x", "2.0x"]
-        self.sens_idx   = 2 # Mặc định là 1.0x
+        self.sens_idx   = 2 
 
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
         import constants 
@@ -447,7 +449,7 @@ class SettingsScreen:
             elif self._sens_up.collidepoint(m_pos):    self.sens_idx = min(len(self.sens_opts) - 1, self.sens_idx + 1)
 
             # --- LƯU CHÍNH THỨC VÀO CONSTANTS ĐỂ GAME CẬP NHẬT NGAY ---
-            ttl_vals = [1200, 900, 600]
+            ttl_vals = [3000, 2000, 1500]
             constants.INITIAL_TTL = ttl_vals[self.diff_idx]
             
             rad_vals = [20, 30, 40]
@@ -499,3 +501,188 @@ class SettingsScreen:
         mouse_pos = pygame.mouse.get_pos()
         _draw_button(surface, self._back_btn, "Back", self._btn_font,
                      hovered=self._back_btn.collidepoint(mouse_pos))
+        
+class ModeSelectScreen:
+
+    def __init__(self, width: int, height: int) -> None:
+        self._w = width
+        self._h = height
+
+        self._title_font = _make_bold_font(52)
+        self._desc_font  = _make_font(18)
+        self._btn_font   = _make_bold_font(28)
+        self._back_font  = _make_font(24)
+
+        cx = width // 2
+        cy = height // 2
+
+        # --- Kích thước thẻ (Card) cho các chế độ ---
+        card_w = 320
+        card_h = 140
+        
+        # Tọa độ thẻ Basic Mode (Đẩy sang Trái)
+        self.rect_basic = pygame.Rect(0, 0, card_w, card_h)
+        self.rect_basic.center = (cx - 170, cy)
+        
+        # Tọa độ thẻ Dynamic Mode (Đẩy sang Phải)
+        self.rect_dynamic = pygame.Rect(0, 0, card_w, card_h)
+        self.rect_dynamic.center = (cx + 170, cy)
+
+        # Nút Back to Menu (Ở dưới cùng)
+        self.rect_back = pygame.Rect(0, 0, 200, 50)
+        self.rect_back.center = (cx, height - 70)
+
+        # Danh sách chứa (Rect hitbox, Tên action, Tên hiển thị, Mô tả)
+        self._buttons = [
+            (self.rect_basic, "mode_basic", "BASIC MODE", "Static targets to train pure reflex."),
+            (self.rect_dynamic, "mode_dynamic", "DYNAMIC MODE", "Moving targets! Test your tracking."),
+            (self.rect_back, "back", "Back", "")
+        ]
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        # Bấm ESC để quay lại Menu
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            return "back"
+            
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            pos = event.pos
+            for rect, action, _, _ in self._buttons:
+                if rect.collidepoint(pos):
+                    return action
+        return None
+
+    def draw(self, surface: pygame.Surface) -> None:
+        surface.fill(DARK_GRAY)
+        pygame.draw.rect(surface, (30, 30, 50), pygame.Rect(0, 0, self._w, 8))
+        
+        _render_shadow(surface, "SELECT GAME MODE", self._title_font, (self._w // 2, 90), color=TITLE_COLOR)
+
+        mouse_pos = pygame.mouse.get_pos()
+        
+        for rect, action, label, desc in self._buttons:
+            is_back = (action == "back")
+            is_hovered = rect.collidepoint(mouse_pos)
+            
+            # --- TÙY CHỈNH MÀU SẮC THEO TỪNG NÚT ---
+            if is_back:
+                bg_color = BTN_HOVER if is_hovered else BTN_NORMAL
+                border_color = BTN_BORDER
+                text_color = BTN_TEXT
+                font = self._back_font
+            else:
+                # Mode Basic (Tone Xanh) và Dynamic (Tone Đỏ)
+                if is_hovered:
+                    bg_color = (60, 80, 110) if action == "mode_basic" else (110, 60, 60)
+                    border_color = TITLE_COLOR
+                else:
+                    bg_color = (40, 50, 70) if action == "mode_basic" else (70, 40, 40)
+                    border_color = GRAY
+                text_color = WHITE
+                font = self._btn_font
+
+            # Vẽ phần hộp (Background + Viền)
+            pygame.draw.rect(surface, bg_color, rect, border_radius=12)
+            pygame.draw.rect(surface, border_color, rect, width=2, border_radius=12)
+
+            # Vẽ chữ bên trong
+            if is_back:
+                text_surf = font.render(label, True, text_color)
+                surface.blit(text_surf, text_surf.get_rect(center=rect.center))
+            else:
+                # Tiêu đề chế độ (Nửa trên của Card)
+                highlight = TITLE_COLOR if is_hovered else text_color
+                text_surf = font.render(label, True, highlight)
+                surface.blit(text_surf, text_surf.get_rect(center=(rect.centerx, rect.centery - 15)))
+                
+                # Mô tả chế độ (Nửa dưới của Card)
+                desc_surf = self._desc_font.render(desc, True, (200, 200, 200))
+                surface.blit(desc_surf, desc_surf.get_rect(center=(rect.centerx, rect.centery + 25)))
+                
+import json
+import os
+
+class StatsScreen:
+    def __init__(self, width: int, height: int) -> None:
+        self._w = width
+        self._h = height
+        self._title_font = _make_bold_font(48)
+        self._label_font = _make_bold_font(22)
+        self._val_font   = _make_font(22)
+        self._btn_font   = _make_font(22)
+
+        self._back_btn = pygame.Rect(0, 0, 200, 48)
+        self._back_btn.center = (width // 2, height - 50)
+        self.data = []
+
+    def load_data(self) -> None:
+        """Đọc file JSON mỗi khi mở màn hình này lên"""
+        self.data = []
+        if os.path.exists("stats.json"):
+            try:
+                with open("stats.json", "r") as f:
+                    self.data = json.load(f)
+            except Exception:
+                pass
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE: return "back"
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self._back_btn.collidepoint(event.pos): return "back"
+        return None
+
+    def draw(self, surface: pygame.Surface) -> None:
+        surface.fill(DARK_GRAY)
+        pygame.draw.rect(surface, (30, 30, 50), pygame.Rect(0, 0, self._w, 8))
+        _render_shadow(surface, "PLAYER STATISTICS", self._title_font, (self._w // 2, 50), color=TITLE_COLOR)
+
+        if not self.data:
+            msg = self._val_font.render("No game data found. Play a round first!", True, GRAY)
+            surface.blit(msg, msg.get_rect(center=(self._w // 2, self._h // 2)))
+        else:
+            # --- TÍNH TOÁN KỶ LỤC ---
+            total_games = len(self.data)
+            high_score = max((d.get("score", 0) for d in self.data), default=0)
+            best_acc = max((d.get("accuracy", 0) for d in self.data), default=0)
+            valid_rt = [d.get("best_reaction", 0) for d in self.data if d.get("best_reaction", 0) > 0]
+            best_react = min(valid_rt) if valid_rt else 0
+
+            # --- VẼ BẢNG KỶ LỤC (BÊN TRÁI) ---
+            start_x, start_y = 60, 150
+            pygame.draw.rect(surface, (35, 35, 45), (start_x - 20, start_y - 20, 300, 240), border_radius=12)
+            pygame.draw.rect(surface, GRAY, (start_x - 20, start_y - 20, 300, 240), width=2, border_radius=12)
+            
+            stats = [
+                ("Total Matches:", f"{total_games}", WHITE),
+                ("High Score:", f"{high_score}", YELLOW),
+                ("Best Accuracy:", f"{best_acc}%", GREEN),
+                ("Best Reaction:", f"{best_react} ms", TITLE_COLOR),
+            ]
+            for i, (lbl, val, col) in enumerate(stats):
+                y = start_y + i * 50
+                surface.blit(self._label_font.render(lbl, True, GRAY), (start_x, y))
+                val_surf = self._val_font.render(val, True, col)
+                surface.blit(val_surf, val_surf.get_rect(topright=(start_x + 260, y)))
+
+            # --- VẼ BIỂU ĐỒ 10 TRẬN GẦN NHẤT (BÊN PHẢI) ---
+            graph_x, graph_y, graph_w, graph_h = 420, 130, 320, 240
+            pygame.draw.rect(surface, (30, 30, 30), (graph_x, graph_y, graph_w, graph_h), border_radius=8)
+            pygame.draw.rect(surface, GRAY, (graph_x, graph_y, graph_w, graph_h), width=2, border_radius=8)
+            
+            title = self._val_font.render("Recent Scores (Last 10)", True, WHITE)
+            surface.blit(title, title.get_rect(center=(graph_x + graph_w // 2, graph_y + 20)))
+
+            recent = [d.get("score", 0) for d in self.data[-10:]]
+            if recent:
+                max_s = max(recent) if max(recent) > 0 else 1
+                bar_w = 20
+                gap = (graph_w - 40 - len(recent) * bar_w) // (len(recent) + 1)
+                
+                for i, s in enumerate(recent):
+                    b_height = int((s / max_s) * 150) # Chiều cao tối đa 150px
+                    bx = graph_x + 20 + gap + i * (bar_w + gap)
+                    by = graph_y + graph_h - 20 - b_height
+                    color = YELLOW if s == high_score else BLUE
+                    pygame.draw.rect(surface, color, (bx, by, bar_w, b_height), border_radius=3)
+
+        mouse_pos = pygame.mouse.get_pos()
+        _draw_button(surface, self._back_btn, "Back", self._btn_font, hovered=self._back_btn.collidepoint(mouse_pos))

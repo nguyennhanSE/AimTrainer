@@ -32,6 +32,6 @@ class DifficultyManager:
         )
 
     def reset(self) -> None:
-        self.current_ttl    = constants.INITIAL_TTL
-        self.current_radius = constants.INITIAL_RADIUS
+        self.current_ttl    = INITIAL_TTL
+        self.current_radius = INITIAL_RADIUS
         self._last_seconds  = 0

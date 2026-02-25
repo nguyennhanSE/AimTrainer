@@ -8,6 +8,8 @@ class GameState(Enum):
     RESULTS      = "results"
     INSTRUCTIONS = "instructions"
     SETTINGS     = "settings"
+    MODE_SELECT  = "mode_select"
+    STATISTICS   = "statistics"
 
 
 class GameStateManager:
