@@ -1,109 +1,71 @@
-from pygame import Surface
-from pygame import display
-from pygame import draw
-from pygame import mouse
+import math
 from random import randint
 
-class Target(object):
-    """
-    Class to create a target.
-    """
+import pygame
 
-    DEFAULT_RADIUS = 50
-    DEFAULT_COLORS = [(255,0,0),(255,255,255)]
+from constants import (
+    GREEN, RED, WHITE, YELLOW,
+    INITIAL_RADIUS, INITIAL_TTL,
+)
 
-    __circle = None
-    __increased = False
-    __maxRadius = None
-    __target = []
-
-    def __init__(self,surface,area_geometry=False,radius=DEFAULT_RADIUS,target_colors=DEFAULT_COLORS,location=None):
-        """
-        The "area" parameter must be a sequence with the coordinates (x1, y1, x2, y2).
-
-        If any value is passed to the "location" parameter, 
-        the target will be created at that specific position. 
-        If the "location" parameter is None, the target will be created at a 
-        random position within the coordinates of the "frame_geometry" parameter.
-        """
-
-        if type(surface) is Surface:
-            self.__surface = surface
-        else: raise TypeError('The argument "surface" must be a Surface object.') 
-
-        self.__surface = surface
-        self.__maxRadius = radius
-
-        self.radius = 0
-        self.colors = target_colors
-
-        # Se não existir uma localização específica, o alvo será criado 
-        # alatóriamente dentro das coordernadas do parâmetro "area_geometry".
-        if not location:
-            self.x = randint(area_geometry[0]+int(radius/2*3),area_geometry[2]-int(radius/2*3))
-            self.y = randint(area_geometry[1]+int(radius/2*3),area_geometry[3]-int(radius/2*3))
-        else:
-            self.x = location[0]
-            self.y = location[1]
-        self.drawTarget()
-        
-
-    def checkHit(self):
-        """
-        Checks if the mouse is within the coordinates (x1, y1, x2, y2) of the target. 
-        If so, the mouse coordinates will be returned as a percentage of the target.
-        """
-        mouse_pos = mouse.get_pos()
-        
-        x1 = self.x-self.radius
-        x2 = self.x+self.radius
-        y1 = self.y-self.radius
-        y2 = self.y+self.radius
-        
-        if x1 <= mouse_pos[0] <= x2:
-            if y1 <= mouse_pos[1] <= y2:
-                
-                # Calcula a posição do tiro em relação ao alvo
-                mouse_pos = [mouse_pos[0]-(self.x-self.radius),mouse_pos[1]-(self.y-self.radius)]
-
-                # Calcula a posição do tiro em porcentagem
-                percent = [100/(self.radius*2)*mouse_pos[0],100/(self.radius*2)*mouse_pos[1]]
-
-                return percent
-        return False
+_GREEN = GREEN
+_RED   = RED
 
 
-    def decreases(self,pixel=1):
-        self.radius -= pixel
+def _lerp_color(c1, c2, t):
+    return tuple(int(c1[i] + (c2[i] - c1[i]) * t) for i in range(3))
 
 
-    def drawTarget(self,border=0,border_color=(0,0,0)):
-        """
-        Method to draw the target.
-        """
-        if self.radius < 0:
-            raise ValueError("Radius must be a value >= 0")
+class Target:
 
-        draw.circle(self.__surface,border_color,[self.x,self.y],int(self.radius+border)) # Desenha a borda do alvo.
-        draw.circle(self.__surface,self.colors[0],[self.x,self.y],int(self.radius))
-        draw.circle(self.__surface,self.colors[1],[self.x,self.y],int(self.radius/100*80)) # 80% do tamanho original.
-        draw.circle(self.__surface,self.colors[0],[self.x,self.y],int(self.radius/100*60)) # 60% do tamanho original.
-        draw.circle(self.__surface,self.colors[1],[self.x,self.y],int(self.radius/100*40)) # 40% of tamanho original.
+    def __init__(self, x: int, y: int, radius: int, ttl_ms: int) -> None:
+        self.x              = x
+        self.y              = y
+        self.radius         = radius
+        self.ttl_ms         = ttl_ms
+        self.initial_radius = radius
+        self.alive          = True
+        self.spawn_time     = pygame.time.get_ticks()
+        self._elapsed       = 0
 
+    def update(self, current_time_ms: int):
+        self._elapsed = current_time_ms - self.spawn_time
+        if self._elapsed >= self.ttl_ms:
+            self.alive = False
+            return "timeout"
+        return None
 
-    def increase(self,pixel=1):
-        
-        # Se o raio do alvo for maior ou igual ao raio máximo, 
-        # será impedido de que o alvo aumente ainda mais.
-        if self.radius >= self.__maxRadius or self.__increased:
-            self.__increased = True
-            return -1
+    def draw(self, surface: pygame.Surface) -> None:
+        life_ratio = min(1.0, self._elapsed / self.ttl_ms) if self.ttl_ms > 0 else 0.0
 
-        if self.radius + pixel > self.__maxRadius:
-            pixel = self.__maxRadius - self.radius
-        self.radius += pixel
+        outer_color = _lerp_color(_GREEN, _RED, life_ratio)
+        r = self.radius
 
+        pygame.draw.circle(surface, (20, 20, 20),     (self.x, self.y), r + 2)
+        pygame.draw.circle(surface, outer_color,      (self.x, self.y), r)
+        pygame.draw.circle(surface, WHITE,            (self.x, self.y), max(1, int(r * 0.55)))
+        pygame.draw.circle(surface, outer_color,      (self.x, self.y), max(1, int(r * 0.35)))
+        pygame.draw.circle(surface, WHITE,            (self.x, self.y), max(1, int(r * 0.15)))
 
+        arc_ratio = max(0.0, 1.0 - life_ratio)
+        if arc_ratio > 0.01:
+            arc_angle = arc_ratio * 2 * math.pi
+            arc_rect  = pygame.Rect(self.x - r, self.y - r, r * 2, r * 2)
+            pygame.draw.arc(surface, YELLOW, arc_rect,
+                            -math.pi / 2,
+                            -math.pi / 2 + arc_angle,
+                            3)
 
-        
-        
+    def is_hit(self, mouse_x: int, mouse_y: int) -> bool:
+        dx = mouse_x - self.x
+        dy = mouse_y - self.y
+        return math.hypot(dx, dy) <= self.radius
+
+    def get_reaction_time(self, hit_time_ms: int) -> int:
+        return hit_time_ms - self.spawn_time
+
+    @staticmethod
+    def spawn(width: int, height: int, radius: int, ttl_ms: int = INITIAL_TTL) -> "Target":
+        x = randint(radius + 1, width  - radius - 1)
+        y = randint(radius + 1, height - radius - 1)
+        return Target(x, y, radius, ttl_ms)

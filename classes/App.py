@@ -6,8 +6,8 @@ from constants import (
     DARK_GRAY, YELLOW, RED, WHITE,
     GAME_DURATION,
 )
-from asset_loader import AssetLoader
-from target import Target
+from classes.asset_loader import AssetLoader
+from classes.target import Target
 from classes.score_manager import ScoreManager
 from classes.difficulty_manager import DifficultyManager
 from classes.state_manager import GameState, GameStateManager

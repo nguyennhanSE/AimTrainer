@@ -1,8 +1,9 @@
 import os
 import pygame
 
-_FONTS_DIR  = os.path.join(os.path.dirname(__file__), "assets", "fonts")
-_SOUNDS_DIR = os.path.join(os.path.dirname(__file__), "assets", "sounds")
+_BASE       = os.path.join(os.path.dirname(__file__), "..")
+_FONTS_DIR  = os.path.join(_BASE, "assets", "fonts")
+_SOUNDS_DIR = os.path.join(_BASE, "assets", "sounds")
 
 _FALLBACK_FONT = "segoeui"
 
