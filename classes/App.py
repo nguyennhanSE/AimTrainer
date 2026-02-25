@@ -37,6 +37,7 @@ class App:
         assets        = AssetLoader()
         self._fonts   = assets.load_fonts()
         self._sounds  = assets.load_sounds()
+        AssetLoader.play_music("menu_music.mp3")
 
         self._state    = GameStateManager(GameState.START)
         self._score    = ScoreManager()
@@ -71,6 +72,7 @@ class App:
             snd.play()
 
     def _start_round(self) -> None:
+        AssetLoader.stop_music()
         self._score.reset()
         self._diff.reset()
         self._feedback.clear()
@@ -79,6 +81,11 @@ class App:
         self._waiting_spawn = True
         self._spawn_timer   = _SPAWN_DELAY_MS
         self._state.transition_to(GameState.PLAYING)
+
+    def _go_to_menu(self) -> None:
+        self._target = None
+        self._state.transition_to(GameState.START)
+        AssetLoader.play_music("menu_music.mp3")
 
     def _spawn_target(self) -> None:
         self._target = Target.spawn(
@@ -118,6 +125,7 @@ class App:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mx, my = event.pos
                     now    = pygame.time.get_ticks()
+                    self._play("shot")
                     if self._target and self._target.is_hit(mx, my):
                         rt  = self._target.get_reaction_time(now)
                         pts = self._score.register_hit(rt, self._target.ttl_ms)
@@ -129,20 +137,17 @@ class App:
                     else:
                         self._score.register_miss()
                         self._feedback.add_miss_feedback((mx, my))
-                        self._play("miss")
 
             elif state == GameState.PAUSED:
                 action = self._pause_screen.handle_event(event)
                 if   action == "resume":  self._state.transition_to(GameState.PLAYING)
                 elif action == "restart": self._start_round()
-                elif action == "menu":
-                    self._target = None
-                    self._state.transition_to(GameState.START)
+                elif action == "menu":    self._go_to_menu()
 
             elif state == GameState.RESULTS:
                 action = self._results_screen.handle_event(event)
                 if   action == "restart": self._start_round()
-                elif action == "menu":    self._state.transition_to(GameState.START)
+                elif action == "menu":    self._go_to_menu()
                 elif action == "exit":    self._quit()
 
     def _update(self, dt: int) -> None:
@@ -153,6 +158,7 @@ class App:
         if self._game_timer >= GAME_DURATION * 1000:
             self._target = None
             self._state.transition_to(GameState.RESULTS)
+            AssetLoader.play_music("menu_music.mp3", volume=0.35)
             return
 
         self._diff.update(self._game_timer // 1000)

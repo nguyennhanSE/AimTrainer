@@ -3,7 +3,7 @@ import pygame
 
 _BASE       = os.path.join(os.path.dirname(__file__), "..")
 _FONTS_DIR  = os.path.join(_BASE, "assets", "fonts")
-_SOUNDS_DIR = os.path.join(_BASE, "assets", "sounds")
+_SOUNDS_DIR = os.path.join(_BASE, "sounds")
 
 _FALLBACK_FONT = "segoeui"
 
@@ -36,9 +36,8 @@ class AssetLoader:
 
     def load_sounds(self) -> dict[str, pygame.mixer.Sound | None]:
         files = {
-            "hit":   "hit.wav",
-            "miss":  "miss.wav",
-            "click": "click.wav",
+            "hit":  "hit.mp3",
+            "shot": "shot.mp3",
         }
 
         sounds: dict[str, pygame.mixer.Sound | None] = {}
@@ -47,6 +46,23 @@ class AssetLoader:
             sounds[key] = self._load_sound(path)
 
         return sounds
+
+    @staticmethod
+    def play_music(filename: str, loops: int = -1, volume: float = 0.5) -> None:
+        path = os.path.join(_SOUNDS_DIR, filename)
+        try:
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(loops)
+        except Exception:
+            pass
+
+    @staticmethod
+    def stop_music() -> None:
+        try:
+            pygame.mixer.music.stop()
+        except Exception:
+            pass
 
     def _make_bold(self, size: int) -> pygame.font.Font:
         font_path = os.path.join(_FONTS_DIR, "main-bold.ttf")
