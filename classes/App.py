@@ -1,13 +1,13 @@
 import sys
 import pygame
-
+import constants
 from constants import (
     WIDTH, HEIGHT, FPS, TITLE,
     DARK_GRAY, YELLOW, RED, WHITE,
-    GAME_DURATION,
+    
 )
 from classes.asset_loader import AssetLoader
-from classes.target import Target
+from classes.Target import Target
 from classes.score_manager import ScoreManager
 from classes.difficulty_manager import DifficultyManager
 from classes.state_manager import GameState, GameStateManager
@@ -57,6 +57,9 @@ class App:
         self._waiting_spawn = False
 
         self._game_frame = pygame.Surface((WIDTH, HEIGHT))
+        
+        self._vmouse_x = float(WIDTH // 2)
+        self._vmouse_y = float(HEIGHT // 2)
 
     def run(self) -> None:
         while True:
@@ -80,12 +83,15 @@ class App:
         self._target        = None
         self._waiting_spawn = True
         self._spawn_timer   = _SPAWN_DELAY_MS
+        pygame.event.set_grab(True)
+        pygame.mouse.get_rel() 
+        self._vmouse_x, self._vmouse_y = pygame.mouse.get_pos()
         self._state.transition_to(GameState.PLAYING)
 
     def _go_to_menu(self) -> None:
         self._target = None
         self._state.transition_to(GameState.START)
-        AssetLoader.play_music("menu_music.mp3")
+        AssetLoader.play_music("menu_music.mp3", volume=getattr(constants, 'MUSIC_VOLUME', 0.5))
 
     def _spawn_target(self) -> None:
         self._target = Target.spawn(
@@ -100,6 +106,12 @@ class App:
             if event.type == pygame.QUIT:
                 self._quit()
 
+            if self._state.is_state(GameState.PLAYING) and event.type == pygame.MOUSEMOTION:
+                    sens = getattr(constants, 'MOUSE_SENSITIVITY', 1.0)
+                    self._vmouse_x += event.rel[0] * sens
+                    self._vmouse_y += event.rel[1] * sens
+                    self._vmouse_x = max(0.0, min(float(WIDTH), self._vmouse_x))
+                    self._vmouse_y = max(0.0, min(float(HEIGHT), self._vmouse_y))
             state = self._state.current_state
 
             if state == GameState.START:
@@ -119,11 +131,12 @@ class App:
 
             elif state == GameState.PLAYING:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    pygame.event.set_grab(False)
                     self._game_frame.blit(self._screen, (0, 0))
                     self._state.transition_to(GameState.PAUSED)
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mx, my = event.pos
+                    mx, my = int(self._vmouse_x), int(self._vmouse_y)
                     now    = pygame.time.get_ticks()
                     self._play("shot")
                     if self._target and self._target.is_hit(mx, my):
@@ -140,7 +153,11 @@ class App:
 
             elif state == GameState.PAUSED:
                 action = self._pause_screen.handle_event(event)
-                if   action == "resume":  self._state.transition_to(GameState.PLAYING)
+                if   action == "resume":  
+                    pygame.event.set_grab(True) 
+                    pygame.mouse.get_rel()
+                    self._vmouse_x, self._vmouse_y = pygame.mouse.get_pos()
+                    self._state.transition_to(GameState.PLAYING)
                 elif action == "restart": self._start_round()
                 elif action == "menu":    self._go_to_menu()
 
@@ -155,7 +172,7 @@ class App:
             return
 
         self._game_timer += dt
-        if self._game_timer >= GAME_DURATION * 1000:
+        if self._game_timer >= constants.GAME_DURATION * 1000:
             self._target = None
             self._state.transition_to(GameState.RESULTS)
             AssetLoader.play_music("menu_music.mp3", volume=0.35)
@@ -179,9 +196,13 @@ class App:
         self._feedback.update(dt)
 
     def _draw_crosshair(self, surface: pygame.Surface) -> None:
-        mx, my = pygame.mouse.get_pos()
+        if self._state.is_state(GameState.PLAYING):
+            mx, my = int(self._vmouse_x), int(self._vmouse_y)
+        else:
+            mx, my = pygame.mouse.get_pos()
+
         c  = _CROSSHAIR_COLOR
-        sz = _CROSSHAIR_SIZE
+        sz = getattr(constants, 'CROSSHAIR_SIZE', 16)
         g  = _CROSSHAIR_GAP
         pygame.draw.line(surface, c, (mx - sz, my), (mx - g, my), 2)
         pygame.draw.line(surface, c, (mx + g,  my), (mx + sz, my), 2)
@@ -204,7 +225,7 @@ class App:
             self._screen.fill(_BG_COLOR)
             if self._target:
                 self._target.draw(self._screen)
-            time_left = max(0.0, (GAME_DURATION * 1000 - self._game_timer) / 1000)
+            time_left = max(0.0, (constants.GAME_DURATION * 1000 - self._game_timer) / 1000)
             self._hud.draw(self._screen, time_left)
             self._feedback.draw(self._screen, self._fonts["medium"])
             self._draw_crosshair(self._screen)
@@ -217,6 +238,8 @@ class App:
         elif state == GameState.RESULTS:
             self._results_screen.draw(self._screen)
 
+        if state != GameState.PLAYING: 
+            self._draw_crosshair(self._screen)
         pygame.display.flip()
 
     @staticmethod
