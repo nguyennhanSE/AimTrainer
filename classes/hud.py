@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-
+import math
 import pygame
 
 if TYPE_CHECKING:
@@ -77,6 +77,61 @@ class HUD:
     # Public interface
     # ------------------------------------------------------------------
 
+    def _draw_combo(self, surface: pygame.Surface) -> None:
+        """Vẽ chữ Combo chớp giật siêu đẹp ở giữa cạnh dưới màn hình"""
+        combo = self._sm.current_combo
+        if combo < 2:
+            return  # Chỉ hiện khi Combo từ 2 trở lên
+        
+        # Thiết lập hiệu ứng dựa trên cấp độ Combo
+        if combo >= 30:
+            color, scale, text = (255, 50, 50), 1.6, f"GODLIKE! {combo}x"
+        elif combo >= 20:
+            color, scale, text = (255, 120, 0), 1.4, f"INSANE! {combo}x"
+        elif combo >= 10:
+            color, scale, text = (255, 230, 0), 1.2, f"GREAT! {combo}x"
+        elif combo >= 5:
+            color, scale, text = (50, 200, 255), 1.1, f"COMBO: {combo}x"
+        else:
+            color, scale, text = (200, 200, 200), 1.0, f"COMBO: {combo}x"
+
+        # Thêm thông báo hệ số điểm
+        multi = self._sm.multiplier
+        if multi > 1.0:
+            text += f" (x{multi:.1f} Pts)"
+
+        # Tạo chữ nền màu (Glow)
+        color_surf = self._font.render(text, True, color)
+        if scale > 1.0:
+            new_w, new_h = int(color_surf.get_width() * scale), int(color_surf.get_height() * scale)
+            color_surf = pygame.transform.smoothscale(color_surf, (new_w, new_h))
+
+        # Hiệu ứng rung lắc (Camera Shake) cho Combo cao
+        offset_x, offset_y = 0, 0
+        if combo >= 10:
+            time_ms = pygame.time.get_ticks()
+            intensity = min(6, combo // 4)
+            offset_x = int(math.sin(time_ms * 0.08) * intensity)
+            offset_y = int(math.cos(time_ms * 0.06) * intensity)
+
+        # Toạ độ giữa màn hình phía dưới
+        cx = surface.get_width() // 2 + offset_x
+        cy = surface.get_height() - 50 + offset_y
+        rect = color_surf.get_rect(center=(cx, cy))
+
+        # Vẽ viền màu siêu dày (Hiệu ứng phát sáng / Arcade style)
+        for dx, dy in [(-3,-3), (3,-3), (-3,3), (3,3), (-4,0), (4,0), (0,-4), (0,4)]:
+            rect_glow = rect.copy()
+            rect_glow.x += dx
+            rect_glow.y += dy
+            surface.blit(color_surf, rect_glow)
+
+        # Vẽ lõi chữ màu Trắng để chữ nổi bật lên
+        white_surf = self._font.render(text, True, WHITE)
+        if scale > 1.0:
+            white_surf = pygame.transform.smoothscale(white_surf, (new_w, new_h))
+        surface.blit(white_surf, rect)
+        
     def draw(self, surface: pygame.Surface, time_left_seconds: float) -> None:
         """
         Render the HUD bar across the top of *surface*.
@@ -99,6 +154,9 @@ class HUD:
 
         # Top-right — hits / misses
         self._render_shadowed(surface, hm_str, (w - _MARGIN, _MARGIN), anchor="topright")
+        
+        # Combo
+        self._draw_combo(surface)
 
     def draw_hit_feedback(
         self,

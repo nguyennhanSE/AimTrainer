@@ -1,0 +1,35 @@
+[
+    {
+        "date": "2026-02-25 22:47",
+        "mode": "basic",
+        "score": 11339,
+        "hits": 48,
+        "misses": 0,
+        "accuracy": 100.0,
+        "avg_reaction": 1099.79,
+        "best_reaction": 731,
+        "max_combo": 48
+    },
+    {
+        "date": "2026-02-25 22:51",
+        "mode": "basic",
+        "score": 9814,
+        "hits": 44,
+        "misses": 3,
+        "accuracy": 93.62,
+        "avg_reaction": 1187.66,
+        "best_reaction": 700,
+        "max_combo": 43
+    },
+    {
+        "date": "2026-02-25 22:52",
+        "mode": "dynamic",
+        "score": 4980,
+        "hits": 36,
+        "misses": 23,
+        "accuracy": 61.02,
+        "avg_reaction": 1134.44,
+        "best_reaction": 585,
+        "max_combo": 15
+    }
+]

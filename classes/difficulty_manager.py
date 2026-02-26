@@ -1,3 +1,4 @@
+import constants
 from constants import (
     INITIAL_RADIUS, MIN_RADIUS,
     INITIAL_TTL,    MIN_TTL,
@@ -9,8 +10,8 @@ from constants import (
 class DifficultyManager:
 
     def __init__(self) -> None:
-        self.current_ttl    = INITIAL_TTL
-        self.current_radius = INITIAL_RADIUS
+        self.current_ttl    = constants.INITIAL_TTL
+        self.current_radius = constants.INITIAL_RADIUS
         self._last_seconds  = 0
 
     def update(self, elapsed_seconds: int) -> None:
@@ -23,11 +24,11 @@ class DifficultyManager:
 
         self.current_ttl = max(
             MIN_TTL,
-            INITIAL_TTL - ttl_steps * TTL_DECREASE_AMOUNT,
+            constants.INITIAL_TTL - ttl_steps * TTL_DECREASE_AMOUNT,
         )
         self.current_radius = max(
             MIN_RADIUS,
-            INITIAL_RADIUS - radius_steps * RADIUS_DECREASE_AMOUNT,
+            constants.INITIAL_RADIUS - radius_steps * RADIUS_DECREASE_AMOUNT,
         )
 
     def reset(self) -> None:
