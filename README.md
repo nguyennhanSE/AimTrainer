@@ -20,12 +20,10 @@ An interactive, Python-based aim training mini-game developed using the **Pygame
    cd <repository-folder>
 2. Install the required dependencies:
 
-Bash
-pip install pygame
-Run the main application file to start the game:
-
-Bash
-python app.py
+   ```bash
+   pip install pygame
+   Run the main application file to start the game:
+   python app.py
 
 ## 🎮 Controls
 The game is heavily mouse-dependent, with intuitive keyboard shortcuts for flow management:
@@ -57,10 +55,11 @@ The game is heavily mouse-dependent, with intuitive keyboard shortcuts for flow 
   - Multiplier Combo: Consecutive hits build up your combo meter. Higher combos yield higher score multipliers.
 
   - Combo Break: Clicking on an empty space (Miss) or letting a target expire (Timeout) breaks your combo back to zero.
+  
+  - Persistent Statistics: At the end of each round, your performance (Hits, Misses, Accuracy, Score, Average/Best Reaction Times) is displayed and saved to a local stats.json file. You can view your historical data and recent score graphs in the Statistics menu.
+
 
 ### 📂 Asset Sources
   - The menu music is on Pixabay, the link: "https://pixabay.com/music/electronic-minimal-techno-background-loop-475852/"
 
 
-Persistent Statistics
-At the end of each round, your performance (Hits, Misses, Accuracy, Score, Average/Best Reaction Times) is displayed and saved to a local stats.json file. You can view your historical data and recent score graphs in the Statistics menu.
