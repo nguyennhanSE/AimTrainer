@@ -30,35 +30,35 @@ python app.py
 ## 🎮 Controls
 The game is heavily mouse-dependent, with intuitive keyboard shortcuts for flow management:
 
-# Left Mouse Click (LMB):
+### Left Mouse Click (LMB):
 
   - Shoot/destroy targets during gameplay.
 
   - Interact with menu buttons (Start, Settings, Pause, Exit,...).
 
-# ESC Key: Pause the game during a live round, or resume from the Pause menu.
+### ESC Key: Pause the game during a live round, or resume from the Pause menu.
 
-# SPACE Key: Quickly restart a new round from the Game Over / Results screen.
+### SPACE Key: Quickly restart a new round from the Game Over / Results screen.
 
 ## 📜 Game Rules & Mechanics
-# Objective
+### Objective
   - Click on the targets as quickly and accurately as possible before they disappear. The game runs for a fixed duration, and the goal is to achieve the highest score and accuracy possible.
 
-# Core Mechanics
+### Core Mechanics
   - Spawn & Despawn: Targets appear at random locations. Each target has a Time-To-Live (TTL). If you fail to click it before the TTL expires, it counts as a Miss.
 
   - Hit Detection: Based on mathematical radius calculation (circle collision) rather than simple bounding boxes, ensuring precise hit registration.
 
   - Dynamic Difficulty: As the round progresses, the game becomes harder. The targets' TTL decreases (they disappear faster), and their radius shrinks (they become smaller).
 
-# Scoring & Combo System (Bonus Features)
+### Scoring & Combo System (Bonus Features)
   - Base Score & Reflex Bonus: Hitting a target grants a base score of 100 points. An additional time bonus (up to 50 points) is awarded based on how fast you react.
 
   - Multiplier Combo: Consecutive hits build up your combo meter. Higher combos yield higher score multipliers.
 
   - Combo Break: Clicking on an empty space (Miss) or letting a target expire (Timeout) breaks your combo back to zero.
 
-## 📂 Asset Sources
+### 📂 Asset Sources
   - The menu music is on Pixabay, the link: "https://pixabay.com/music/electronic-minimal-techno-background-loop-475852/"
 
 
